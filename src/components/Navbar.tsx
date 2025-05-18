@@ -8,6 +8,9 @@ const Navbar = () => {
   const { user, logout } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
+  // Extract name from user metadata
+  const userName = user?.user_metadata?.name || 'Usuário';
+
   return (
     <nav className="bg-white shadow-sm border-b">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -34,7 +37,7 @@ const Navbar = () => {
                 </Button>
                 <div className="ml-3 flex items-center">
                   <div className="text-sm font-medium text-gray-700">
-                    {user.name}
+                    {userName}
                   </div>
                 </div>
               </>
@@ -45,7 +48,7 @@ const Navbar = () => {
                     Login
                   </Button>
                 </Link>
-                <Link to="/register">
+                <Link to="/signup">
                   <Button className="bg-arq-blue hover:bg-blue-600">
                     Registrar
                   </Button>
@@ -100,7 +103,7 @@ const Navbar = () => {
                   Sair
                 </button>
                 <div className="px-3 py-2 text-sm font-medium text-gray-400">
-                  Logado como: {user.name}
+                  Logado como: {userName}
                 </div>
               </>
             ) : (
@@ -113,7 +116,7 @@ const Navbar = () => {
                   Login
                 </Link>
                 <Link 
-                  to="/register" 
+                  to="/signup" 
                   className="block px-3 py-2 text-base font-medium text-gray-600 hover:bg-gray-50"
                   onClick={() => setIsMenuOpen(false)}
                 >
