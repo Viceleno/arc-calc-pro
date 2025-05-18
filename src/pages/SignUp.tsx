@@ -1,29 +1,41 @@
 
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { useToast } from '@/components/ui/use-toast';
+import { toast } from '@/components/ui/sonner';
 
-const Login = () => {
+const SignUp = () => {
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth();
+  const { signUp } = useAuth();
   const navigate = useNavigate();
-  const { toast } = useToast();
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (password !== confirmPassword) {
+      toast.error("As senhas não coincidem.");
+      return;
+    }
+    
+    if (password.length < 6) {
+      toast.error("A senha deve ter pelo menos 6 caracteres.");
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      await login(email, password);
-      // O redirecionamento é tratado pelo AuthContext
+      await signUp(email, password, name);
+      navigate('/login');
     } catch (error) {
-      // O erro já é tratado no AuthContext
+      // Erro já tratado no AuthContext
     } finally {
       setIsLoading(false);
     }
@@ -39,13 +51,26 @@ const Login = () => {
         
         <Card>
           <CardHeader>
-            <CardTitle className="arq-heading">Login</CardTitle>
+            <CardTitle className="arq-heading">Cadastro</CardTitle>
             <CardDescription>
-              Entre para acessar suas ferramentas de cálculo arquitetônico
+              Crie sua conta para acessar as ferramentas de cálculo
             </CardDescription>
           </CardHeader>
-          <form onSubmit={handleLogin}>
+          <form onSubmit={handleSignUp}>
             <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <label htmlFor="name" className="text-sm font-medium">
+                  Nome completo
+                </label>
+                <Input
+                  id="name"
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Seu nome"
+                  required
+                />
+              </div>
               <div className="space-y-2">
                 <label htmlFor="email" className="text-sm font-medium">
                   Email
@@ -60,19 +85,28 @@ const Login = () => {
                 />
               </div>
               <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <label htmlFor="password" className="text-sm font-medium">
-                    Senha
-                  </label>
-                  <Link to="/forgot-password" className="text-xs text-primary hover:underline">
-                    Esqueceu a senha?
-                  </Link>
-                </div>
+                <label htmlFor="password" className="text-sm font-medium">
+                  Senha
+                </label>
                 <Input
                   id="password"
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Mínimo de 6 caracteres"
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <label htmlFor="confirmPassword" className="text-sm font-medium">
+                  Confirmar senha
+                </label>
+                <Input
+                  id="confirmPassword"
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Digite a senha novamente"
                   required
                 />
               </div>
@@ -83,12 +117,12 @@ const Login = () => {
                 className="w-full" 
                 disabled={isLoading}
               >
-                {isLoading ? 'Entrando...' : 'Entrar'}
+                {isLoading ? 'Criando conta...' : 'Criar conta'}
               </Button>
               <div className="text-sm text-center text-muted-foreground mt-2">
-                Não tem uma conta?{' '}
-                <Link to="/signup" className="text-primary hover:underline">
-                  Cadastre-se
+                Já tem uma conta?{' '}
+                <Link to="/login" className="text-primary hover:underline">
+                  Faça login
                 </Link>
               </div>
             </CardFooter>
@@ -99,4 +133,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default SignUp;
