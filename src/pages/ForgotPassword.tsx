@@ -1,16 +1,16 @@
 
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft } from 'lucide-react';
+import { toast } from '@/components/ui/sonner';
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isSent, setIsSent] = useState(false);
   const { resetPassword } = useAuth();
 
   const handleResetPassword = async (e: React.FormEvent) => {
@@ -19,7 +19,7 @@ const ForgotPassword = () => {
 
     try {
       await resetPassword(email);
-      setIsSubmitted(true);
+      setIsSent(true);
     } catch (error) {
       // Erro já tratado no AuthContext
     } finally {
@@ -32,20 +32,20 @@ const ForgotPassword = () => {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <h1 className="arq-heading text-3xl text-arq-blue mb-2">ArqCalc</h1>
-          <p className="text-muted-foreground">Calculadora para Arquitetos</p>
+          <p className="text-muted-foreground">Recuperação de senha</p>
         </div>
         
         <Card>
           <CardHeader>
-            <CardTitle className="arq-heading">Recuperar senha</CardTitle>
+            <CardTitle className="arq-heading">Esqueceu sua senha?</CardTitle>
             <CardDescription>
-              {isSubmitted 
-                ? "E-mail de recuperação enviado." 
-                : "Digite seu e-mail para receber um link de recuperação"}
+              {!isSent 
+                ? "Digite seu email para receber instruções de recuperação" 
+                : "Verifique seu email para redefinir sua senha"}
             </CardDescription>
           </CardHeader>
           
-          {!isSubmitted ? (
+          {!isSent ? (
             <form onSubmit={handleResetPassword}>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
@@ -68,31 +68,29 @@ const ForgotPassword = () => {
                   className="w-full" 
                   disabled={isLoading}
                 >
-                  {isLoading ? 'Enviando...' : 'Enviar link de recuperação'}
+                  {isLoading ? 'Enviando...' : 'Enviar instruções'}
                 </Button>
                 <div className="text-sm text-center text-muted-foreground mt-2">
-                  <Link to="/login" className="inline-flex items-center text-primary hover:underline">
-                    <ArrowLeft className="w-4 h-4 mr-1" />
+                  Lembrou sua senha?{' '}
+                  <Link to="/login" className="text-primary hover:underline">
                     Voltar para o login
                   </Link>
                 </div>
               </CardFooter>
             </form>
           ) : (
-            <CardContent className="space-y-4">
-              <div className="text-center p-4">
-                <p className="mb-4">
-                  Enviamos um e-mail de recuperação para <strong>{email}</strong>. 
-                  Por favor, verifique sua caixa de entrada e spam.
-                </p>
-                <div className="text-sm text-center mt-4">
-                  <Link to="/login" className="inline-flex items-center text-primary hover:underline">
-                    <ArrowLeft className="w-4 h-4 mr-1" />
-                    Voltar para o login
-                  </Link>
-                </div>
-              </div>
-            </CardContent>
+            <CardFooter className="flex flex-col space-y-4">
+              <p className="text-center text-sm text-muted-foreground">
+                Se houver uma conta associada a este email, você receberá instruções para redefinir sua senha.
+              </p>
+              <Button 
+                className="w-full" 
+                variant="outline"
+                onClick={() => window.location.href = '/login'}
+              >
+                Voltar para o login
+              </Button>
+            </CardFooter>
           )}
         </Card>
       </div>

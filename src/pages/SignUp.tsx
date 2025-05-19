@@ -33,7 +33,7 @@ const SignUp = () => {
 
     try {
       await signUp(email, password, name);
-      navigate('/login');
+      // Navegação e mensagens são gerenciados no AuthContext
     } catch (error) {
       // Erro já tratado no AuthContext
     } finally {

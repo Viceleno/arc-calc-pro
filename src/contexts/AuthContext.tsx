@@ -83,7 +83,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Não é necessário navegar aqui, o listener onAuthStateChange cuidará disso
     } catch (error: any) {
       console.error('Erro ao fazer login:', error);
-      toast.error(error.message || 'Erro ao fazer login. Verifique suas credenciais.');
+      toast.error(error.message === 'Invalid login credentials' 
+        ? 'Credenciais inválidas. Verifique seu email e senha.' 
+        : error.message || 'Erro ao fazer login. Verifique suas credenciais.');
       throw error;
     } finally {
       setIsLoading(false);
@@ -94,6 +96,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signUp = async (email: string, password: string, name: string) => {
     setIsLoading(true);
     try {
+      // Primeiro verificar se o usuário já existe
+      const { data: existingUser, error: checkError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      
+      if (existingUser?.user) {
+        toast.error("Este email já está cadastrado. Por favor, faça login.");
+        navigate('/login');
+        return;
+      }
+
+      // Se não existir, realizar o cadastro
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -101,15 +116,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           data: {
             name,
           },
+          emailRedirectTo: window.location.origin + '/login',
         },
       });
 
       if (error) throw error;
 
-      toast.success("Cadastro realizado com sucesso! Verifique seu e-mail para confirmar.");
+      // Verifica se o usuário já foi confirmado ou se precisa confirmar o email
+      if (data?.user?.identities?.length === 0) {
+        toast.error("Este email já está cadastrado. Por favor, faça login ou recupere sua senha.");
+        navigate('/login');
+        return;
+      }
+      
+      toast.success("Cadastro realizado com sucesso! Por favor, verifique seu e-mail para confirmar a conta.");
+      navigate('/login');
       
     } catch (error: any) {
       console.error('Erro ao cadastrar:', error);
+      
+      if (error.message.includes('already registered')) {
+        toast.error("Este email já está cadastrado. Por favor, faça login.");
+        navigate('/login');
+        return;
+      }
+      
       toast.error(error.message || 'Erro ao criar conta. Tente novamente.');
       throw error;
     } finally {
@@ -128,6 +159,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (error) throw error;
 
       toast.success("E-mail de recuperação enviado. Verifique sua caixa de entrada.");
+      navigate('/login');
     } catch (error: any) {
       console.error('Erro ao enviar e-mail de recuperação:', error);
       toast.error(error.message || 'Erro ao enviar e-mail de recuperação.');
